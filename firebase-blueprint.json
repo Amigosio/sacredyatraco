@@ -1,0 +1,84 @@
+{
+  "entities": {
+    "Package": {
+      "title": "Travel Package",
+      "description": "Details of a spiritual pilgrimage package",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "imageUrl": { "type": "string", "format": "uri" },
+        "price": { "type": "number" },
+        "duration": { "type": "string" },
+        "region": { "type": "string", "enum": ["North India", "South India", "West India", "East India", "Jyotirlinga Special"] },
+        "inclusions": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "itinerary": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "day": { "type": "number" },
+              "activity": { "type": "string" }
+            }
+          }
+        }
+      },
+      "required": ["title", "description", "price", "duration", "region"]
+    },
+    "Booking": {
+      "title": "Booking Record",
+      "description": "Information about a user booking",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "packageId": { "type": "string" },
+        "packageName": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "numPilgrims": { "type": "number" },
+        "totalPrice": { "type": "number" },
+        "status": { "type": "string", "enum": ["pending", "confirmed", "cancelled"] },
+        "travelerDetails": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "age": { "type": "number" },
+              "gender": { "type": "string" }
+            }
+          }
+        },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "packageId", "date", "numPilgrims", "status"]
+    },
+    "User": {
+      "title": "User Profile",
+      "description": "Private user profile information",
+      "type": "object",
+      "properties": {
+        "displayName": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "phoneNumber": { "type": "string" },
+        "isAdmin": { "type": "boolean" }
+      }
+    }
+  },
+  "firestore": {
+    "packages": {
+      "schema": "Package",
+      "description": "Available travel packages"
+    },
+    "bookings": {
+      "schema": "Booking",
+      "description": "Customer bookings"
+    },
+    "users": {
+      "schema": "User",
+      "description": "User profile data"
+    }
+  }
+}

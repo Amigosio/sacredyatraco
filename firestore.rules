@@ -1,0 +1,43 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function isValidId(id) { return id is string && id.size() <= 128; }
+    function isAdmin() { return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid)); }
+
+    // Packages: Public read, Admin write
+    match /packages/{packageId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Bookings: Users can read/write their own bookings
+    match /bookings/{bookingId} {
+      function isValidBooking(data) {
+        return data.userId == request.auth.uid
+          && data.packageId is string
+          && data.numPilgrims is number
+          && data.numPilgrims > 0
+          && data.status in ['pending', 'confirmed', 'cancelled'];
+      }
+
+      allow create: if isSignedIn() && isValidBooking(request.resource.data) && request.resource.data.status == 'pending';
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow update: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin())
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.status in ['pending', 'confirmed', 'cancelled'];
+    }
+
+    // Users: Private profile
+    match /users/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+  }
+}
