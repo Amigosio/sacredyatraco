@@ -1,7 +1,18 @@
 import { GoogleGenAI } from '@google/genai';
 import { Message } from '../types';
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+let aiClient: GoogleGenAI | null = null;
+
+function getAI(): GoogleGenAI {
+  if (!aiClient) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      console.warn('GEMINI_API_KEY environment variable is missing.');
+    }
+    aiClient = new GoogleGenAI({ apiKey: apiKey || '' });
+  }
+  return aiClient;
+}
 
 const SYSTEM_INSTRUCTION = `You are a "Spiritual Guide" for Sacred Yatra Co., a premium travel agency specializing in Indian pilgrimages.
 Your job is to answer questions about temple timings, dress codes, necessary rituals, historical significance, and general travel advice for spiritual destinations in India.
@@ -12,7 +23,7 @@ Always respond in Markdown.`;
 
 export async function chatWithGuide(history: Message[], prompt: string) {
   try {
-    const response = await ai.models.generateContent({
+    const response = await getAI().models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: [
         ...history.map(m => ({ role: m.role, parts: [{ text: m.text }] })),
